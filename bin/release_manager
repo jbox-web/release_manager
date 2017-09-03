@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'release_manager'
+
+ReleaseManager.start_cli(ARGV)
