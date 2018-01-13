@@ -11,7 +11,7 @@ module ReleaseManager
     attr_reader :current_date, :current_version, :next_version, :bump_version, :configuration_file
 
     def initialize(opts = {})
-      @current_date       = Date.today.to_s
+      @current_date       = ::Date.today.to_s
       @current_version    = Bump::Bump.current
       @bump_version       = opts[:bump] || 'patch'
       @bump_version       = 'patch' if !%w[major minor patch].include?(bump_version)
