@@ -1,6 +1,6 @@
-# -*- encoding: utf-8 -*-
-$:.push File.expand_path('../lib', __FILE__)
-require 'release_manager/version'
+# frozen_string_literal: true
+
+require_relative 'lib/release_manager/version'
 
 Gem::Specification.new do |s|
   s.name        = 'release_manager'
@@ -10,14 +10,13 @@ Gem::Specification.new do |s|
   s.email       = ['nicoladmin@free.fr']
   s.homepage    = 'https://github.com/jbox-web/release_manager'
   s.summary     = %q{A release manager for Rails app}
+  s.license     = 'MIT'
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  s.require_paths = ['lib']
+  s.files       = `git ls-files`.split("\n")
+  s.executables = ['release_manager']
 
-  s.add_dependency 'rake'
-  s.add_dependency 'thor'
-  s.add_dependency 'bump'
-  s.add_dependency 'colorize'
+  s.add_runtime_dependency 'bump'
+  s.add_runtime_dependency 'colorize'
+  s.add_runtime_dependency 'rake'
+  s.add_runtime_dependency 'thor'
 end
