@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.authors     = ['Nicolas Rodriguez']
   s.email       = ['nicoladmin@free.fr']
   s.homepage    = 'https://github.com/jbox-web/release_manager'
-  s.summary     = %q{A release manager for Rails app}
+  s.summary     = 'A release manager for Rails app'
   s.license     = 'MIT'
 
   s.files       = `git ls-files`.split("\n")
