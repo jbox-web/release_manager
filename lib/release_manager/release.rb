@@ -15,7 +15,7 @@ module ReleaseManager
       @current_version    = Bump::Bump.current
       @bump_version       = opts[:bump] || 'patch'
       @bump_version       = 'patch' if !%w[major minor patch].include?(bump_version)
-      @next_version       = Bump::Bump.send(:next_version, current_version, bump_version)
+      @next_version       = Bump::Bump.next_version(bump_version, current_version)
       @configuration_file = File.join(Dir.pwd, CONFIGURATION_FILE)
     end
 
