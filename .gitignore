@@ -1,0 +1,17 @@
+# Ignore bundler config.
+/.bundle
+
+# Ignore Gemfile.lock
+/Gemfile.lock
+/gemfiles/*.lock
+/gemfiles/.bundle
+
+# Ignore test files
+/coverage
+/tmp
+
+# RVM files
+/.ruby-version
+
+# Gem files
+/*.gem
