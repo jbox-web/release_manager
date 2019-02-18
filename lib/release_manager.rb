@@ -21,7 +21,7 @@ end
 
 loader = Zeitwerk::Loader.new
 loader.inflector = CustomInflector.new
-loader.push_dir('lib')
+loader.push_dir(__dir__)
 loader.setup
 
 module ReleaseManager
