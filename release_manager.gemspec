@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.files       = `git ls-files`.split("\n")
   s.executables = ['release_manager']
 
-  s.add_runtime_dependency 'bump'
+  s.add_runtime_dependency 'bump', '>= 0.8.0'
   s.add_runtime_dependency 'colorize'
   s.add_runtime_dependency 'rake'
   s.add_runtime_dependency 'thor'
