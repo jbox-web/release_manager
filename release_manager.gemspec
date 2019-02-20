@@ -4,7 +4,7 @@ require_relative 'lib/release_manager/version'
 
 Gem::Specification.new do |s|
   s.name        = 'release_manager'
-  s.version     = ReleaseManager::VERSION
+  s.version     = ReleaseManager::VERSION::STRING
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Nicolas Rodriguez']
   s.email       = ['nicoladmin@free.fr']
