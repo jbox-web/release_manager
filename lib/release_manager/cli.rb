@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ReleaseManager
-  class CLI < Thor
+  class Cli < Thor
 
     desc 'release', 'Create a new release'
     option :bump, type: :string, default: 'patch'
