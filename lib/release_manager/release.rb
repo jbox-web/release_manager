@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 module ReleaseManager
   class Release
 
-    CONFIGURATION_FILE = '.release_manager.yml'.freeze
-    DEFAULT_BRANCH     = 'master'.freeze
-    VERSION_FILE       = 'VERSION'.freeze
-    CHANGELOG_FILE     = 'CHANGELOG.md'.freeze
-    CHANGELOG_FILE_YML = 'changelog.yml'.freeze
+    CONFIGURATION_FILE = '.release_manager.yml'
+    DEFAULT_BRANCH     = 'master'
+    VERSION_FILE       = 'VERSION'
+    CHANGELOG_FILE     = 'CHANGELOG.md'
+    CHANGELOG_FILE_YML = 'changelog.yml'
     CHANGELOG_REGEX    =  /(##.*\[Full Changelog\].*\n\n)/m
 
     attr_reader :current_date, :current_version, :next_version, :bump_version, :configuration_file
@@ -80,18 +82,18 @@ module ReleaseManager
     end
 
     def rollback
-      %x[git tag -d #{current_version}]
-      %x[git reset --soft HEAD^]
-      %x[git reset]
-      %x[git checkout #{CHANGELOG_FILE}]
-      %x[git checkout #{CHANGELOG_FILE_YML}]
-      %x[git checkout #{VERSION_FILE}]
+      %x(git tag -d #{current_version})
+      %x(git reset --soft HEAD^)
+      %x(git reset)
+      %x(git checkout #{CHANGELOG_FILE})
+      %x(git checkout #{CHANGELOG_FILE_YML})
+      %x(git checkout #{VERSION_FILE})
       puts 'Done!'
     end
 
     def push
-      %x[git push -u origin #{DEFAULT_BRANCH}]
-      %x[git push -u origin --tags]
+      %x(git push -u origin #{DEFAULT_BRANCH})
+      %x(git push -u origin --tags)
       puts 'Done!'
     end
 
@@ -104,11 +106,11 @@ module ReleaseManager
       puts "current_version  : #{current_version.white}"
       puts "next_version     : #{next_version.white}"
       puts ''
-      puts "uncommited_files :"
+      puts 'uncommited_files :'
       puts ok_if_empty(uncommited_files)
-      puts "staged_files :"
+      puts 'staged_files :'
       puts ok_if_empty(staged_files)
-      puts "unpushed_commits :"
+      puts 'unpushed_commits :'
       puts ok_if_empty(unpushed_commits)
     end
 
@@ -122,7 +124,7 @@ module ReleaseManager
 
       def write_changelog(versions)
         File.open(CHANGELOG_FILE, 'w') do |f|
-          f.write "# Change Log"
+          f.write '# Change Log'
           f.write "\n\n"
           versions.each do |b|
             f.write b
@@ -144,21 +146,21 @@ module ReleaseManager
       end
 
       def next_version_text(current_date, current_version, next_version)
-        """
+        ''"
           ## [#{next_version}](#{repository_url}/tree/#{next_version}) (#{current_date})
           [Full Changelog](#{repository_url}/compare/#{current_version}...#{next_version})
-        """.strip.gsub(' ' * 10, '')
+        "''.strip.gsub(' ' * 10, '')
       end
 
       def git_commit(version)
         puts 'Commiting changes:'
-        %x[git add #{VERSION_FILE} #{CHANGELOG_FILE} #{CHANGELOG_FILE_YML}]
-        %x[git commit -m 'Release version #{version}']
+        %x(git add #{VERSION_FILE} #{CHANGELOG_FILE} #{CHANGELOG_FILE_YML})
+        %x(git commit -m 'Release version #{version}')
         puts 'Done!'
         puts ''
 
         puts 'Creating tag:'
-        %x[git tag #{version}]
+        %x(git tag #{version})
         puts 'Done!'
       end
 
@@ -192,24 +194,24 @@ module ReleaseManager
 
       def exec_git_cmd(args)
         cmd = args.join(' ')
-        out = %x[#{cmd}]
+        out = %x(#{cmd})
         out.strip
       end
 
       def render_invalid_branch_message
         puts "Invalid branch to create tag : '#{current_branch.bold}'."
         puts "You must be on '#{DEFAULT_BRANCH.bold}' branch to create a new release."
-        puts "Exiting..."
+        puts 'Exiting...'
       end
 
       def render_pending_changes_message
-        puts "There are pending changes :"
+        puts 'There are pending changes :'
         puts "* staged_files     : #{staged_files}"
         puts "* uncommited_files : #{uncommited_files}"
         puts "* unpushed_commits : #{unpushed_commits}"
-        puts ""
-        puts "Commit them or stash them before creating a new release."
-        puts "Exiting..."
+        puts ''
+        puts 'Commit them or stash them before creating a new release.'
+        puts 'Exiting...'
       end
 
       def update_changelog_yml(next_version)
@@ -232,9 +234,9 @@ module ReleaseManager
 
       def ok_if_empty(files)
         if files.empty?
-          YAML::dump(files).green
+          YAML.dump(files).green
         else
-          YAML::dump(files).red
+          YAML.dump(files).red
         end
       end
 

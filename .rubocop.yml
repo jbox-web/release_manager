@@ -1,0 +1,28 @@
+AllCops:
+  TargetRubyVersion: 2.4
+  Exclude:
+    - bin/*
+
+Style/Documentation:
+  Enabled: false
+
+Style/CommandLiteral:
+  EnforcedStyle: percent_x
+
+Layout/IndentationConsistency:
+  EnforcedStyle: indented_internal_methods
+
+Layout/EmptyLines:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 110
+
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundClassBody:
+  Enabled: false
+
+Metrics/MethodLength:
+  Max: 15

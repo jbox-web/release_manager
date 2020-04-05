@@ -24,4 +24,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rake'
   s.add_runtime_dependency 'thor'
   s.add_runtime_dependency 'zeitwerk'
+
+  s.add_development_dependency 'rubocop'
 end
