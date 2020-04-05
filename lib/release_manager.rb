@@ -13,6 +13,6 @@ loader.setup
 
 module ReleaseManager
   def self.start_cli(args)
-    ReleaseManager::Cli.start(ARGV)
+    ReleaseManager::Cli.start(args)
   end
 end
