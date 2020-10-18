@@ -8,7 +8,7 @@ module ReleaseManager
     VERSION_FILE       = 'VERSION'
     CHANGELOG_FILE     = 'CHANGELOG.md'
     CHANGELOG_FILE_YML = 'changelog.yml'
-    CHANGELOG_REGEX    =  /(##.*\[Full Changelog\].*\n\n)/m
+    CHANGELOG_REGEX    = /(##.*\[Full Changelog\].*\n\n)/m
 
     attr_reader :current_date, :current_version, :next_version, :bump_version, :configuration_file
 
