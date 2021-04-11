@@ -56,6 +56,7 @@ module ReleaseManager
       end
 
       puts "repository_url   : #{repository_url}"
+      puts "author           : #{author}"
       puts "current_branch   : #{current_branch.white}"
       puts "current_date     : #{current_date.white}"
       puts "release_date     : #{release_date.white}"
@@ -102,6 +103,7 @@ module ReleaseManager
     def info
       puts "OK for release   : #{render_ok_for_release?}"
       puts "repository_url   : #{repository_url}"
+      puts "author           : #{author}"
       puts "current_branch   : #{render_branch(current_branch)}"
       puts "current_date     : #{current_date.white}"
       puts "release_date     : #{release_date.white}"
@@ -220,7 +222,7 @@ module ReleaseManager
 
       def update_changelog_json(next_version)
         current_changelog = JSON.parse(File.read(CHANGELOG_FILE_JSON))
-        next_changelog    = current_changelog.merge({ next_version => { 'release_date' => release_date, 'changes' => git_changelog } })
+        next_changelog    = current_changelog.merge({ next_version => { 'author' => author, 'release_date' => release_date, 'changes' => git_changelog } })
         write_changelog_json(next_changelog)
       end
 
@@ -246,6 +248,10 @@ module ReleaseManager
 
       def render_branch(branch)
         valid_branch? ? branch.green : branch.red
+      end
+
+      def author
+        default_config['author']
       end
 
       def repository_url
