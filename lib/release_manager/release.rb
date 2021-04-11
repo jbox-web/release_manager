@@ -3,18 +3,19 @@
 module ReleaseManager
   class Release
 
-    CONFIGURATION_FILE = '.release_manager.yml'
-    DEFAULT_BRANCH     = 'master'
-    VERSION_FILE       = 'VERSION'
-    CHANGELOG_FILE     = 'CHANGELOG.md'
-    CHANGELOG_FILE_YML = 'changelog.yml'
-    CHANGELOG_REGEX    = /(##.*\[Full Changelog\].*\n\n)/m
+    CONFIGURATION_FILE  = '.release_manager.yml'
+    DEFAULT_BRANCH      = 'master'
+    VERSION_FILE        = 'VERSION'
+    CHANGELOG_FILE      = 'CHANGELOG.md'
+    CHANGELOG_FILE_JSON = 'changelog.json'
+    CHANGELOG_REGEX     = /(##.*\[Full Changelog\].*\n\n)/m
 
-    attr_reader :current_date, :current_version, :next_version, :bump_version, :configuration_file
+    attr_reader :current_date, :current_version, :release_date, :next_version, :bump_version, :configuration_file
 
     def initialize(opts = {})
       @current_date       = ::Date.today.to_s
       @current_version    = Bump::Bump.current
+      @release_date       = Time.now.utc.strftime("%Y%m%d%H%M%S")
       @bump_version       = opts[:bump] || 'patch'
       @bump_version       = 'patch' if !%w[major minor patch].include?(bump_version)
       @next_version       = Bump::Bump.next_version(bump_version, current_version)
@@ -57,6 +58,7 @@ module ReleaseManager
       puts "repository_url   : #{repository_url}"
       puts "current_branch   : #{current_branch.white}"
       puts "current_date     : #{current_date.white}"
+      puts "release_date     : #{release_date.white}"
       puts "bump_version     : #{bump_version.white}"
       puts "current_version  : #{current_version.white}"
       puts "next_version     : #{next_version.white}"
@@ -72,7 +74,7 @@ module ReleaseManager
       write_changelog(versions)
 
       # Regenerate changelog.yml file
-      update_changelog_yml(next_version)
+      update_changelog_json(next_version)
 
       # Write the new VERSION
       write_version(next_version)
@@ -86,7 +88,7 @@ module ReleaseManager
       %x(git reset --soft HEAD^)
       %x(git reset)
       %x(git checkout #{CHANGELOG_FILE})
-      %x(git checkout #{CHANGELOG_FILE_YML})
+      %x(git checkout #{CHANGELOG_FILE_JSON})
       %x(git checkout #{VERSION_FILE})
       puts 'Done!'
     end
@@ -102,6 +104,7 @@ module ReleaseManager
       puts "repository_url   : #{repository_url}"
       puts "current_branch   : #{render_branch(current_branch)}"
       puts "current_date     : #{current_date.white}"
+      puts "release_date     : #{release_date.white}"
       puts "bump_version     : #{bump_version.white}"
       puts "current_version  : #{current_version.white}"
       puts "next_version     : #{next_version.white}"
@@ -133,9 +136,10 @@ module ReleaseManager
         end
       end
 
-      def write_changelog_yml(data)
-        File.open(CHANGELOG_FILE_YML, 'w') do |f|
-          f.write data
+      def write_changelog_json(data)
+        File.open(CHANGELOG_FILE_JSON, 'w') do |f|
+          f.write JSON.pretty_generate(data)
+          f.write "\n"
         end
       end
 
@@ -154,7 +158,7 @@ module ReleaseManager
 
       def git_commit(version)
         puts 'Commiting changes:'
-        %x(git add #{VERSION_FILE} #{CHANGELOG_FILE} #{CHANGELOG_FILE_YML})
+        %x(git add #{VERSION_FILE} #{CHANGELOG_FILE} #{CHANGELOG_FILE_JSON})
         %x(git commit -m 'Release version #{version}')
         puts 'Done!'
         puts ''
@@ -214,10 +218,10 @@ module ReleaseManager
         puts 'Exiting...'
       end
 
-      def update_changelog_yml(next_version)
-        current_changelog = YAML.load(File.read(CHANGELOG_FILE_YML))
-        next_changelog    = current_changelog.merge({ next_version => git_changelog })
-        write_changelog_yml(next_changelog.to_yaml)
+      def update_changelog_json(next_version)
+        current_changelog = JSON.parse(File.read(CHANGELOG_FILE_JSON))
+        next_changelog    = current_changelog.merge({ next_version => { 'release_date' => release_date, 'changes' => git_changelog } })
+        write_changelog_json(next_changelog)
       end
 
       def pending_changes?
