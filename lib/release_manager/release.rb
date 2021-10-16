@@ -57,12 +57,12 @@ module ReleaseManager
 
       puts "repository_url   : #{repository_url}"
       puts "author           : #{author}"
-      puts "current_branch   : #{current_branch.white}"
-      puts "current_date     : #{current_date.white}"
-      puts "release_date     : #{release_date.white}"
-      puts "bump_version     : #{bump_version.white}"
-      puts "current_version  : #{current_version.white}"
-      puts "next_version     : #{next_version.white}"
+      puts "current_branch   : #{paint(current_branch, :white)}"
+      puts "current_date     : #{paint(current_date, :white)}"
+      puts "release_date     : #{paint(release_date, :white)}"
+      puts "bump_version     : #{paint(bump_version, :white)}"
+      puts "current_version  : #{paint(current_version, :white)}"
+      puts "next_version     : #{paint(next_version, :white)}"
       puts ''
 
       # Get all versions from CHANGELOG.md
@@ -105,11 +105,11 @@ module ReleaseManager
       puts "repository_url   : #{repository_url}"
       puts "author           : #{author}"
       puts "current_branch   : #{render_branch(current_branch)}"
-      puts "current_date     : #{current_date.white}"
-      puts "release_date     : #{release_date.white}"
-      puts "bump_version     : #{bump_version.white}"
-      puts "current_version  : #{current_version.white}"
-      puts "next_version     : #{next_version.white}"
+      puts "current_date     : #{paint(current_date, :white)}"
+      puts "release_date     : #{paint(release_date, :white)}"
+      puts "bump_version     : #{paint(bump_version, :white)}"
+      puts "current_version  : #{paint(current_version, :white)}"
+      puts "next_version     : #{paint(next_version, :white)}"
       puts ''
       puts 'uncommited_files :'
       puts ok_if_empty(uncommited_files)
@@ -205,8 +205,8 @@ module ReleaseManager
       end
 
       def render_invalid_branch_message
-        puts "Invalid branch to create tag : '#{current_branch.bold}'."
-        puts "You must be on '#{DEFAULT_BRANCH.bold}' branch to create a new release."
+        puts "Invalid branch to create tag : '#{paint(current_branch, :bold)}'."
+        puts "You must be on '#{paint(DEFAULT_BRANCH, :bold)}' branch to create a new release."
         puts 'Exiting...'
       end
 
@@ -235,19 +235,19 @@ module ReleaseManager
       end
 
       def render_ok_for_release?
-        ok_for_release? ? '✓'.green : '✗'.red
+        ok_for_release? ? paint('✓', :green) : paint('✗', :red)
       end
 
       def ok_if_empty(files)
         if files.empty?
-          YAML.dump(files).green
+          paint YAML.dump(files), :green
         else
-          YAML.dump(files).red
+          paint YAML.dump(files), :red
         end
       end
 
       def render_branch(branch)
-        valid_branch? ? branch.green : branch.red
+        valid_branch? ? paint(branch, :green) : paint(branch, :red)
       end
 
       def author
@@ -267,5 +267,8 @@ module ReleaseManager
           end
       end
 
+      def paint(string, *color)
+        Paint[string, *color]
+      end
   end
 end

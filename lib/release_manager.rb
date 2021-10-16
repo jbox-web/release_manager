@@ -4,7 +4,7 @@ require 'date'
 require 'json'
 require 'yaml'
 require 'bump'
-require 'colorize'
+require 'paint'
 require 'thor'
 
 require 'zeitwerk'
