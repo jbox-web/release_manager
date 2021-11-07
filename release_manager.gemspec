@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.files = `git ls-files`.split("\n")
 
   s.bindir      = 'exe'
-  s.executables = ['release_manager']
+  s.executables = ['release-manager']
 
   s.add_runtime_dependency 'bump', '>= 0.8.0'
   s.add_runtime_dependency 'paint'
