@@ -2,6 +2,9 @@
 
 module ReleaseManager
   class Cli < Thor
+    def self.exit_on_failure?
+      true
+    end
 
     desc 'release', 'Create a new release'
     option :bump, type: :string, default: 'patch'
