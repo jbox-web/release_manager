@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = ReleaseManager::VERSION::STRING
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Nicolas Rodriguez']
-  s.email       = ['nicoladmin@free.fr']
+  s.email       = ['nico@nicoladmin.fr']
   s.homepage    = 'https://github.com/jbox-web/release_manager'
   s.summary     = 'A release manager for Rails app'
   s.license     = 'MIT'
