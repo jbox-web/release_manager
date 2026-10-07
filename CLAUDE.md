@@ -32,8 +32,8 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   on `ReleaseManager::Release`, which builds an instance per command. Files are autoloaded by
   Zeitwerk (`Zeitwerk::Loader.for_gem`), so new constants must follow the file-naming convention.
 - `Release#initialize` computes everything up front: current version via `Bump::Bump.current`
-  (read from the host app's `VERSION` file), next version via `Bump::Bump.next_version`. An invalid
-  `--bump` value silently falls back to `patch`.
+  (read from the host app's `VERSION` file), next version via `Bump::Bump.next_version`. Thor rejects
+  a `--bump` value outside `Release::BUMP_LEVELS` before any of this runs.
 - Host app contract — files expected at the host app root:
   - `VERSION` — rewritten with the next version.
   - `CHANGELOG.md` — the new entry is inserted before the first `## ` heading; everything else

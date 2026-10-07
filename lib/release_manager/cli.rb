@@ -7,7 +7,7 @@ module ReleaseManager
     end
 
     desc 'release', 'Create a new release'
-    option :bump, type: :string, default: 'patch'
+    option :bump, type: :string, default: 'patch', enum: ReleaseManager::Release::BUMP_LEVELS
 
     def release
       puts 'Creating release :'
@@ -35,7 +35,7 @@ module ReleaseManager
 
 
     desc 'info', 'Display infos about the current and the next release'
-    option :bump, type: :string, default: 'patch'
+    option :bump, type: :string, default: 'patch', enum: ReleaseManager::Release::BUMP_LEVELS
 
     def info
       ReleaseManager::Release.info(options)

@@ -9,6 +9,7 @@ module ReleaseManager
     CHANGELOG_FILE      = 'CHANGELOG.md'
     CHANGELOG_FILE_JSON = 'changelog.json'
     CHANGELOG_ENTRY     = /^## /
+    BUMP_LEVELS         = %w[major minor patch].freeze
 
     attr_reader :current_date, :current_version, :release_date, :next_version, :bump_version,
                 :configuration_file
@@ -18,7 +19,6 @@ module ReleaseManager
       @current_version    = Bump::Bump.current
       @release_date       = Time.now.utc.strftime('%Y%m%d%H%M%S')
       @bump_version       = opts[:bump] || 'patch'
-      @bump_version       = 'patch' unless %w[major minor patch].include?(bump_version)
       @next_version       = Bump::Bump.next_version(bump_version, current_version)
       @configuration_file = File.join(Dir.pwd, CONFIGURATION_FILE)
       @remote_fetched     = false
