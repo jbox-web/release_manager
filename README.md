@@ -9,7 +9,7 @@ Put this in your `Gemfile` :
 ```ruby
 git_source(:github){ |repo_name| "https://github.com/#{repo_name}.git" }
 
-gem 'release_manager', github: 'jbox-web/release_manager', tag: '1.0.0'
+gem 'release_manager', github: 'jbox-web/release_manager', branch: 'master'
 ```
 
 then run `bundle install`.
