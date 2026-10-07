@@ -1,5 +1,7 @@
 # ReleaseManager
 
+[![CI](https://github.com/jbox-web/release_manager/actions/workflows/ci.yml/badge.svg)](https://github.com/jbox-web/release_manager/actions/workflows/ci.yml)
+
 Create a new release for your application, easy ;)
 
 ## Installation
@@ -12,7 +14,7 @@ git_source(:github){ |repo_name| "https://github.com/#{repo_name}.git" }
 gem 'release_manager', github: 'jbox-web/release_manager', branch: 'master'
 ```
 
-then run `bundle install`.
+then run `bundle install`. Ruby 3.3 or later is required.
 
 ## Usage
 
@@ -23,7 +25,7 @@ Run the commands from the root of your application, on the `master` branch:
 | `bundle exec release-manager info [--bump LEVEL]` | Shows the current and next version, and whether the repository is ready for a release |
 | `bundle exec release-manager release [--bump LEVEL]` | Bumps `VERSION`, updates `CHANGELOG.md` and `changelog.json`, commits them and creates a signed tag |
 | `bundle exec release-manager push` | Pushes `master` and the release tag to `origin`, atomically |
-| `bundle exec release-manager rollback` | Undoes a release that has not been pushed yet: removes the release commit and its tag |
+| `bundle exec release-manager rollback` | Removes the release commit and its tag locally; meant for a release not pushed yet, since nothing is removed from `origin` |
 
 `LEVEL` is `major`, `minor` or `patch` (default). Any other value is rejected.
 

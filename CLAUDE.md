@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 A small Thor CLI gem (`release-manager`) that cuts releases of a **host application**: it is added to
-the host app's `Gemfile` (from GitHub, by tag) and run from that app's root. All file and git
+the host app's `Gemfile` (from GitHub, `branch: 'master'`) and run from that app's root. All file and git
 operations target `Dir.pwd`, never this gem's own repository.
 
 ## Commands
@@ -17,7 +17,9 @@ Ruby is pinned in `mise.toml`, which also wraps the commands as tasks:
   target Ruby 3.3, max line length 110)
 - Specs: `mise run dev:spec` (`bin/rspec`, bounded to 600s); one example: `bin/rspec spec/release_spec.rb:16`
 - Build the gem: `mise run release:build` (`bin/rake build`; only the `bundler/gem_tasks` tasks exist)
-- Run the CLI locally: `bundle exec exe/release-manager <release|rollback|push|info> [--bump major|minor|patch]`
+- Run the CLI against a host app, from that app's root (from this repository's root it stops on
+  `VERSION is missing`): `BUNDLE_GEMFILE=<this repo>/Gemfile bundle exec <this repo>/exe/release-manager
+  <release|rollback|push|info> [--bump major|minor|patch]`
 
 The specs are end-to-end: `spec/support/host_repo.rb` builds a throwaway host app (bare `origin` + `master`
 clone) and runs the real executable in a subprocess. Git is isolated from the developer's config through
@@ -34,7 +36,8 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
 - `exe/release-manager` → `ReleaseManager.start_cli` → `ReleaseManager::Cli` (Thor) → class methods
   on `ReleaseManager::Release`, which builds an instance per command and orchestrates three
   collaborators: `Git` (every git command), `Changelog` (builds and writes `CHANGELOG.md`,
-  `changelog.json` and `VERSION`) and `Report` (all printed output and refusal messages). Files are
+  `changelog.json` and `VERSION`) and `Report` (release summary, `info` checklist and refusal
+  messages; progress lines such as `Done!` are printed by `Cli`, `Release` and `Git`). Files are
   autoloaded by Zeitwerk (`Zeitwerk::Loader.for_gem`), so new constants must follow the file-naming
   convention.
 - `Release#initialize` computes everything up front: current version via `Bump::Bump.current`
@@ -50,9 +53,9 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   - `.release_manager.yml` — provides `author` and `repository_url`; `release` refuses to run
     without `repository_url` (`info` still works).
 - `release` fetches `origin/master` and refuses to run unless on `master` (`DEFAULT_BRANCH`,
-  hardcoded) with no staged, unstaged, unpushed or unpulled changes. It builds the new files
-  before writing any of them, commits them and creates a signed, annotated tag named after the
-  bare version (no `v` prefix).
+  hardcoded) with no staged, unstaged, unpushed or unpulled changes, and with the current version
+  tagged. It builds the new files before writing any of them, commits them and creates a signed,
+  annotated tag named after the bare version (no `v` prefix).
 - `rollback` only runs when HEAD is the release commit of the current version, tagged by it or left
   untagged by a failed signature, and the working tree is clean; it then deletes the tag if any and
   soft-resets `HEAD^`.
