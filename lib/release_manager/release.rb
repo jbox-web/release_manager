@@ -87,7 +87,7 @@ module ReleaseManager
       raise Thor::Error, 'There are uncommitted changes, commit or stash them before rolling back.' \
         unless exec_git_cmd(%w[git status --porcelain --untracked-files=no]).empty?
 
-      git!('tag', '-d', current_version)
+      git!('tag', '-d', current_version) if current_version_tagged?
       git!('reset', '--soft', 'HEAD^')
       git!('reset', '--quiet')
       git!('checkout', '--', CHANGELOG_FILE, CHANGELOG_FILE_JSON, VERSION_FILE)
@@ -170,9 +170,13 @@ module ReleaseManager
         # Annotated and signed, with its message on the command line: a bare
         # `git tag` opens an editor when tag.gpgSign is set, and `%x()` captures
         # its output, leaving an invisible editor waiting for input.
-        # `exception: true` stops the release instead of printing "Done!" when
-        # the signature fails.
-        system('git', 'tag', '-s', version.to_s, '-m', "Release #{version}", exception: true)
+        # A failed signature stops the release instead of printing "Done!",
+        # and says how to undo the commit that already exists.
+        unless system('git', 'tag', '-s', version.to_s, '-m', "Release #{version}")
+          raise Thor::Error, "The release commit was created but tag #{version} could not be created. " \
+                             'Fix the signing setup, then run `release-manager rollback` and release again.'
+        end
+
         puts 'Done!'
       end
 
@@ -235,7 +239,9 @@ module ReleaseManager
         head         = exec_git_cmd(%w[git rev-parse HEAD])
         tag_commit   = exec_git_cmd(%W[git rev-list -n 1 #{current_version}])
         head_subject = exec_git_cmd(%w[git log -1 --format=%s])
-        tag_commit == head && head_subject == "Release version #{current_version}"
+        # No tag at all is the state a failed tag signature leaves behind
+        tag_ok = current_version_tagged? ? tag_commit == head : true
+        tag_ok && head_subject == "Release version #{current_version}"
       end
 
       # Raises Thor::Error so the CLI prints the failure and exits 1 instead of

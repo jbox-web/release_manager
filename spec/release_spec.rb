@@ -140,6 +140,32 @@ RSpec.describe 'release-manager release' do
     end
   end
 
+  context 'when the tag cannot be signed' do
+    before { sh!(app, 'git', 'config', 'user.signingkey', File.join(app, 'missing-key.pub')) }
+
+    it 'explains that the commit exists and how to undo it' do
+      result = run_cli(app, 'release', '--bump', 'minor')
+
+      expect(result.status.exitstatus).to eq(1)
+      expect(result.stderr).to include(
+        'The release commit was created but tag 1.1.0 could not be created. ' \
+        'Fix the signing setup, then run `release-manager rollback` and release again.'
+      )
+      expect(result.stderr).not_to include('.rb:')
+      expect(sh!(app, 'git', 'log', '-1', '--format=%s')).to eq('Release version 1.1.0')
+    end
+
+    it 'can be rolled back' do
+      run_cli(app, 'release', '--bump', 'minor')
+
+      result = run_cli(app, 'rollback')
+
+      expect(result.status).to be_success, result.stderr
+      expect(sh!(app, 'git', 'log', '-1', '--format=%s')).to eq('Add feature')
+      expect(read_file(app, 'VERSION')).to eq("1.0.0\n")
+    end
+  end
+
   context 'when git refuses the release commit' do
     before do
       hook = File.join(app, '.git', 'hooks', 'pre-commit')
