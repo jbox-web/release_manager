@@ -153,10 +153,10 @@ module ReleaseManager
       end
 
       def next_version_text(current_date, current_version, next_version)
-        "
-          ## [#{next_version}](#{repository_url}/tree/#{next_version}) (#{current_date})
-          [Full Changelog](#{repository_url}/compare/#{current_version}...#{next_version})
-        ".strip.gsub(' ' * 10, '')
+        [
+          "## [#{next_version}](#{repository_url}/tree/#{next_version}) (#{current_date})",
+          "[Full Changelog](#{repository_url}/compare/#{current_version}...#{next_version})"
+        ].join("\n")
       end
 
       def git_commit(version)
