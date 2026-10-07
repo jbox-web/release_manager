@@ -15,6 +15,11 @@ module ReleaseManager
                 :configuration_file
 
     def initialize(opts = {})
+      # Bump would fall back on version.rb or the gemspec, while the release
+      # writes VERSION: the original file would then never be bumped.
+      raise Thor::Error, "#{VERSION_FILE} is missing, create it with the current version." \
+        unless File.exist?(VERSION_FILE)
+
       @current_date       = ::Date.today.to_s
       @current_version    = Bump::Bump.current
       @release_date       = Time.now.utc.strftime('%Y%m%d%H%M%S')

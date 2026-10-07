@@ -35,7 +35,8 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   (read from the host app's `VERSION` file), next version via `Bump::Bump.next_version`. Thor rejects
   a `--bump` value outside `Release::BUMP_LEVELS` before any of this runs.
 - Host app contract — files expected at the host app root:
-  - `VERSION` — rewritten with the next version.
+  - `VERSION` — required by every command (Bump's fallback to `version.rb` or the gemspec is
+    refused), rewritten with the next version.
   - `CHANGELOG.md` — the new entry is inserted before the first `## ` heading; everything else
     (title, introduction, previous entries) is copied verbatim.
   - `changelog.json` — must exist and be valid JSON; a new key per version is merged in with
