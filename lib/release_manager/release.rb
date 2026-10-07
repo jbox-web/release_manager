@@ -228,7 +228,7 @@ module ReleaseManager
       end
 
       def ref_range
-        "#{current_version}...master"
+        "#{current_version}..#{DEFAULT_BRANCH}"
       end
 
       def current_version_tagged?
