@@ -43,4 +43,27 @@ RSpec.describe 'release-manager release, CHANGELOG.md handling' do
   it 'adds the first entry to a CHANGELOG.md that has none yet' do
     expect(release_with("# Change Log\n")).to eq("# Change Log\n\n#{new_entry}")
   end
+
+  context 'when the locale is C, as under cron' do
+    let(:previous) { "## [1.0.0](https://example.test/app/tree/1.0.0) (2026-01-01)\n- bogue corrigé\n" }
+    let(:app) do
+      create_host_repo(changelog: "# Change Log\n\n#{previous}",
+                       config: "author: Jérôme\nrepository_url: https://example.test/app\n")
+    end
+    let(:c_locale) { { 'LANG' => nil, 'LC_ALL' => 'C', 'LC_CTYPE' => nil } }
+
+    before { commit_feature(app, name: 'fix.txt', subject: 'Corrige le résumé') }
+
+    it 'reads and writes UTF-8 files' do
+      sh!(app, 'git', 'push', '-q')
+      result = run_cli(app, 'release', '--bump', 'minor', env: c_locale)
+
+      expect(result.status).to be_success, result.stderr
+      expect(read_file(app, 'CHANGELOG.md')).to eq("# Change Log\n\n#{new_entry}#{previous}")
+      expect(JSON.parse(read_file(app, 'changelog.json'))['1.1.0']).to include(
+        'author' => 'Jérôme',
+        'changes' => ['Add feature', 'Corrige le résumé', 'Release version 1.1.0']
+      )
+    end
+  end
 end

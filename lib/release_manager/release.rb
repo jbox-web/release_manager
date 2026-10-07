@@ -123,7 +123,7 @@ module ReleaseManager
       # whatever its trailing newlines. A CHANGELOG.md with no entry yet gets
       # the new one appended after its content.
       def new_changelog(entry)
-        content = File.read(CHANGELOG_FILE)
+        content = File.read(CHANGELOG_FILE, encoding: 'UTF-8')
         first_entry = content.index(CHANGELOG_ENTRY)
         return "#{content.rstrip}\n\n#{entry}\n\n" unless first_entry
 
@@ -220,7 +220,9 @@ module ReleaseManager
       def exec_git_cmd(args)
         cmd = args.join(' ')
         out = %x(#{cmd})
-        out.strip
+        # Git prints UTF-8, but the capture is labelled with the locale's
+        # encoding, which is US-ASCII under LANG=C and breaks commit subjects.
+        out.force_encoding(Encoding::UTF_8).strip
       end
 
       def render_invalid_branch_message
@@ -240,7 +242,7 @@ module ReleaseManager
       end
 
       def update_changelog_json(next_version)
-        current_changelog = JSON.parse(File.read(CHANGELOG_FILE_JSON))
+        current_changelog = JSON.parse(File.read(CHANGELOG_FILE_JSON, encoding: 'UTF-8'))
         release_entry     = { 'author' => author, 'release_date' => release_date, 'changes' => git_changelog }
         next_changelog    = current_changelog.merge({ next_version => release_entry })
         write_changelog_json(next_changelog)
