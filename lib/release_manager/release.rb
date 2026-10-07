@@ -166,7 +166,12 @@ module ReleaseManager
         puts ''
 
         puts 'Creating tag:'
-        %x(git tag #{version})
+        # Annotated and signed, with its message on the command line: a bare
+        # `git tag` opens an editor when tag.gpgSign is set, and `%x()` captures
+        # its output, leaving an invisible editor waiting for input.
+        # `exception: true` stops the release instead of printing "Done!" when
+        # the signature fails.
+        system('git', 'tag', '-s', version.to_s, '-m', "Release #{version}", exception: true)
         puts 'Done!'
       end
 
