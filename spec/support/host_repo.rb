@@ -112,8 +112,8 @@ module HostRepo
   end
 
   # Runs the CLI in `dir`. ANSI colors are stripped so expectations read as text.
-  def run_cli(dir, *args, env: {})
-    stdout, stderr, status = Open3.capture3(git_env.merge(env), RbConfig.ruby, EXE, *args, chdir: dir)
+  def run_cli(dir, *, env: {})
+    stdout, stderr, status = Open3.capture3(git_env.merge(env), RbConfig.ruby, EXE, *, chdir: dir)
     Result.new(stdout: strip_ansi(stdout), stderr: strip_ansi(stderr), status: status)
   end
 

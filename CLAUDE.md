@@ -14,7 +14,7 @@ Ruby is pinned in `mise.toml`, which also wraps the commands as tasks:
 
 - Install dependencies: `mise run dev:deps` (`bundle install`)
 - Lint: `mise run dev:lint` (`bin/rubocop`, bounded to 180s; config in `.rubocop.yml`, `bin/*` excluded,
-  target Ruby 3.0, max line length 110)
+  target Ruby 3.3, max line length 110)
 - Specs: `mise run dev:spec` (`bin/rspec`, bounded to 600s); one example: `bin/rspec spec/release_spec.rb:16`
 - Build the gem: `mise run release:build` (`bin/rake build`; only the `bundler/gem_tasks` tasks exist)
 - Run the CLI locally: `bundle exec exe/release-manager <release|rollback|push|info> [--bump major|minor|patch]`
