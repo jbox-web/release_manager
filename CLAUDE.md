@@ -36,8 +36,8 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   `--bump` value silently falls back to `patch`.
 - Host app contract — files expected at the host app root:
   - `VERSION` — rewritten with the next version.
-  - `CHANGELOG.md` — must already contain a `## ... [Full Changelog] ...` block; `CHANGELOG_REGEX`
-    splits on it and the new version entry is prepended.
+  - `CHANGELOG.md` — the new entry is inserted before the first `## ` heading; everything else
+    (title, introduction, previous entries) is copied verbatim.
   - `changelog.json` — must exist and be valid JSON; a new key per version is merged in with
     `author`, `release_date` and `changes` (commit subjects from `<current_version>...master`).
   - `.release_manager.yml` — optional, provides `author` and `repository_url`.

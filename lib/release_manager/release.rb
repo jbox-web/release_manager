@@ -8,7 +8,7 @@ module ReleaseManager
     VERSION_FILE        = 'VERSION'
     CHANGELOG_FILE      = 'CHANGELOG.md'
     CHANGELOG_FILE_JSON = 'changelog.json'
-    CHANGELOG_REGEX     = /(##.*\[Full Changelog\].*\n\n)/m
+    CHANGELOG_ENTRY     = /^## /
 
     attr_reader :current_date, :current_version, :release_date, :next_version, :bump_version,
                 :configuration_file
@@ -58,14 +58,8 @@ module ReleaseManager
 
       render_release_infos(paint(current_branch, :white))
 
-      # Get all versions from CHANGELOG.md
-      versions = changelog_versions
-
-      # Add our new version
-      versions.unshift(next_version_text(current_date, current_version, next_version))
-
-      # Write the new CHANGELOG.md
-      write_changelog(versions)
+      # Write the new CHANGELOG.md, with our new version on top
+      write_changelog(next_version_text(current_date, current_version, next_version))
 
       # Regenerate changelog.yml file
       update_changelog_json(next_version)
@@ -124,20 +118,20 @@ module ReleaseManager
         puts ''
       end
 
-      def changelog_versions
-        versions = File.read(CHANGELOG_FILE).split(CHANGELOG_REGEX)[1].split("\n\n")
-        versions.reject { |v| v == "\n" }
+      # Inserts the entry before the first `## ` heading and copies everything
+      # else verbatim: the title, any introduction, and every previous entry
+      # whatever its trailing newlines. A CHANGELOG.md with no entry yet gets
+      # the new one appended after its content.
+      def new_changelog(entry)
+        content = File.read(CHANGELOG_FILE)
+        first_entry = content.index(CHANGELOG_ENTRY)
+        return "#{content.rstrip}\n\n#{entry}\n\n" unless first_entry
+
+        "#{content[0...first_entry]}#{entry}\n\n#{content[first_entry..]}"
       end
 
-      def write_changelog(versions)
-        File.open(CHANGELOG_FILE, 'w') do |f|
-          f.write '# Change Log'
-          f.write "\n\n"
-          versions.each do |b|
-            f.write b
-            f.write "\n\n"
-          end
-        end
+      def write_changelog(entry)
+        File.write(CHANGELOG_FILE, new_changelog(entry))
       end
 
       def write_changelog_json(data)
