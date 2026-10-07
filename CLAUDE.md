@@ -40,7 +40,8 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
     (title, introduction, previous entries) is copied verbatim.
   - `changelog.json` — must exist and be valid JSON; a new key per version is merged in with
     `author`, `release_date` and `changes` (commit subjects from `<current_version>...master`).
-  - `.release_manager.yml` — optional, provides `author` and `repository_url`.
+  - `.release_manager.yml` — provides `author` and `repository_url`; `release` refuses to run
+    without `repository_url` (`info` still works).
 - `release` fetches `origin/master` and refuses to run unless on `master` (`DEFAULT_BRANCH`,
   hardcoded) with no staged, unstaged, unpushed or unpulled changes. It builds the new files
   before writing any of them, commits them and creates a signed, annotated tag named after the

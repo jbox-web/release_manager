@@ -53,6 +53,10 @@ module ReleaseManager
       unless current_version_tagged?
         raise Thor::Error, "Tag #{current_version} not found, can't list the changes since then."
       end
+      # Every CHANGELOG.md link is built from it
+      if repository_url.to_s.empty?
+        raise Thor::Error, "#{CONFIGURATION_FILE} must define repository_url to build the CHANGELOG.md links."
+      end
 
       render_release_infos(paint(current_branch, :white))
 
@@ -319,9 +323,10 @@ module ReleaseManager
       def default_config
         @default_config ||=
           if File.exist?(configuration_file)
-            YAML.safe_load_file(configuration_file)
+            # An empty file loads as nil
+            YAML.safe_load_file(configuration_file) || {}
           else
-            { 'repository_url' => '' }
+            {}
           end
       end
 
