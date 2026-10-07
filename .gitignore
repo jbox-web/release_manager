@@ -16,3 +16,6 @@ spec/dummy/tmp/
 
 # Ignore built gems
 pkg/
+
+# Ignore codegraph db
+.codegraph/
