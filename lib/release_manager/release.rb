@@ -86,8 +86,10 @@ module ReleaseManager
     end
 
     def push
-      %x(git push -u origin #{DEFAULT_BRANCH})
-      %x(git push -u origin --tags)
+      # One atomic push for the branch and this release's tag only: either
+      # both land on origin or neither does, so a rejected branch can no
+      # longer leave a published tag pointing at an unpublished commit.
+      git!('push', '--atomic', '-u', 'origin', DEFAULT_BRANCH, current_version)
       puts 'Done!'
     end
 

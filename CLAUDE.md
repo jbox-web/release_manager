@@ -47,7 +47,7 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   bare version (no `v` prefix).
 - `rollback` only runs when HEAD is the release commit the current version tag points to and the
   working tree is clean; it then deletes that tag and soft-resets `HEAD^`.
-- `push` pushes `master` and all tags to `origin`.
+- `push` pushes `master` and the current version tag to `origin` in one `git push --atomic`.
 - Refusals raise `Thor::Error` (`exit_on_failure?` is true, so the CLI exits 1). Queries go through
   `exec_git_cmd` (`%x()`, output relabelled as UTF-8); mutations go through `git!`, which raises
   `Thor::Error` when the command fails.
