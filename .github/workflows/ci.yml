@@ -1,0 +1,111 @@
+---
+name: CI
+
+permissions: {}
+
+on:
+  push:
+    branches:
+      - '**'
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    branches:
+      - '**'
+    paths-ignore:
+      - "**.md"
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup mise
+        uses: jdx/mise-action@v5
+
+      - name: Install dependencies
+        run: mise dev:deps
+
+      - name: Run RuboCop
+        run: mise dev:lint
+
+  # The gemspec builds its file list from `git ls-files`: a tracked file
+  # missing from the tree only shows up here, as a failed `gem build`.
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup mise
+        uses: jdx/mise-action@v5
+
+      - name: Install dependencies
+        run: mise dev:deps
+
+      - name: Build the gem
+        run: mise release:build
+
+  # The Ruby pinned in mise.toml, on every platform with a precompiled build
+  # in jdx/ruby (mise's source for Ruby binaries). That repository ships a
+  # single macOS archive, for Apple Silicon, so there is no Intel macOS job:
+  # it would compile Ruby from source instead of testing the gem.
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-26
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup mise
+        uses: jdx/mise-action@v5
+
+      - name: Install dependencies
+        run: mise dev:deps
+
+      - name: Run tests
+        run: mise dev:spec
+
+  # Every other maintained Ruby down to the gemspec's required_ruby_version.
+  # MISE_RUBY_VERSION overrides the version pinned in mise.toml.
+  test_ruby_versions:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - 3.3.12
+          - 3.4.11
+    runs-on: ubuntu-24.04
+    env:
+      MISE_RUBY_VERSION: ${{ matrix.ruby }}
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup mise
+        uses: jdx/mise-action@v5
+
+      - name: Install dependencies
+        run: mise dev:deps
+
+      - name: Run tests
+        run: mise dev:spec

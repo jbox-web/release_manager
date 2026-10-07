@@ -23,6 +23,9 @@ The specs are end-to-end: `spec/support/host_repo.rb` builds a throwaway host ap
 clone) and runs the real executable in a subprocess. Git is isolated from the developer's config through
 `GIT_CONFIG_GLOBAL` (generated file with a per-run SSH signing key) and `GIT_CONFIG_NOSYSTEM`.
 
+CI (`.github/workflows/ci.yml`) runs the same mise tasks: lint, gem build, specs on the pinned Ruby
+(Linux amd64/arm64, macOS arm64) and on the other maintained Rubies through `MISE_RUBY_VERSION`.
+
 `Gemfile.lock` is git-ignored, so gem versions are whatever the local lockfile resolved. The gemspec
 builds its file list from `git ls-files`: a tracked file missing from disk makes `gem build` fail.
 
