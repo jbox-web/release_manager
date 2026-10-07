@@ -160,8 +160,8 @@ module ReleaseManager
 
       def git_commit(version)
         puts 'Commiting changes:'
-        %x(git add #{VERSION_FILE} #{CHANGELOG_FILE} #{CHANGELOG_FILE_JSON})
-        %x(git commit -m 'Release version #{version}')
+        git!('add', VERSION_FILE, CHANGELOG_FILE, CHANGELOG_FILE_JSON)
+        git!('commit', '--quiet', '-m', "Release version #{version}")
         puts 'Done!'
         puts ''
 
@@ -215,8 +215,12 @@ module ReleaseManager
         tag_commit == head && head_subject == "Release version #{current_version}"
       end
 
+      # Raises Thor::Error so the CLI prints the failure and exits 1 instead of
+      # carrying on with the next step.
       def git!(*args)
-        system('git', *args, exception: true)
+        return if system('git', *args)
+
+        raise Thor::Error, "`git #{args.join(' ')}` failed, stopping."
       end
 
       def exec_git_cmd(args)

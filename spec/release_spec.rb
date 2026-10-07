@@ -63,4 +63,21 @@ RSpec.describe 'release-manager release' do
       expect { sh!(app, 'git', 'tag', '-v', '1.1.0') }.not_to raise_error
     end
   end
+
+  context 'when git refuses the release commit' do
+    before do
+      hook = File.join(app, '.git', 'hooks', 'pre-commit')
+      File.write(hook, "#!/bin/sh\nexit 1\n")
+      File.chmod(0o755, hook)
+    end
+
+    it 'fails without creating the tag' do
+      result = run_cli(app, 'release', '--bump', 'minor')
+
+      expect(result.status.exitstatus).to eq(1)
+      expect(result.stdout).not_to include('Creating tag')
+      expect(sh!(app, 'git', 'tag', '--list')).to eq('1.0.0')
+      expect(sh!(app, 'git', 'log', '-1', '--format=%s')).to eq('Add feature')
+    end
+  end
 end
