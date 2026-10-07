@@ -64,6 +64,29 @@ RSpec.describe 'release-manager release' do
     end
   end
 
+  context 'when the repository is not ready for a release' do
+    it 'exits 1 on another branch than master' do
+      sh!(app, 'git', 'checkout', '-q', '-b', 'feature')
+
+      result = run_cli(app, 'release')
+
+      expect(result.status.exitstatus).to eq(1)
+      expect(result.stderr).to include("You must be on 'master' branch to create a new release.")
+      expect(sh!(app, 'git', 'tag', '--list')).to eq('1.0.0')
+    end
+
+    it 'exits 1 when there are uncommitted changes' do
+      write_file(app, 'feature.txt', "changed\n")
+
+      result = run_cli(app, 'release')
+
+      expect(result.status.exitstatus).to eq(1)
+      expect(result.stderr).to include('There are pending changes')
+      expect(result.stderr).to include('uncommited_files : ["feature.txt"]')
+      expect(sh!(app, 'git', 'tag', '--list')).to eq('1.0.0')
+    end
+  end
+
   context 'when changelog.json cannot be used' do
     {
       'is not valid JSON' => 'not json',

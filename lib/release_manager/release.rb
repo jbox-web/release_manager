@@ -44,17 +44,9 @@ module ReleaseManager
     end
 
     def release
-      # Check if current branch is valid for creating tag
-      unless valid_branch?
-        render_invalid_branch_message
-        return
-      end
-
-      # There should be not pending changes
-      if pending_changes?
-        render_pending_changes_message
-        return
-      end
+      # Thor::Error exits 1, so `release && push` stops on a refused release
+      raise Thor::Error, invalid_branch_message unless valid_branch?
+      raise Thor::Error, pending_changes_message if pending_changes?
 
       render_release_infos(paint(current_branch, :white))
 
@@ -221,20 +213,24 @@ module ReleaseManager
         out.force_encoding(Encoding::UTF_8).strip
       end
 
-      def render_invalid_branch_message
-        puts "Invalid branch to create tag : '#{paint(current_branch, :bold)}'."
-        puts "You must be on '#{paint(DEFAULT_BRANCH, :bold)}' branch to create a new release."
-        puts 'Exiting...'
+      def invalid_branch_message
+        <<~MSG
+          Invalid branch to create tag : '#{paint(current_branch, :bold)}'.
+          You must be on '#{paint(DEFAULT_BRANCH, :bold)}' branch to create a new release.
+          Exiting...
+        MSG
       end
 
-      def render_pending_changes_message
-        puts 'There are pending changes :'
-        puts "* staged_files     : #{staged_files}"
-        puts "* uncommited_files : #{uncommited_files}"
-        puts "* unpushed_commits : #{unpushed_commits}"
-        puts ''
-        puts 'Commit them or stash them before creating a new release.'
-        puts 'Exiting...'
+      def pending_changes_message
+        <<~MSG
+          There are pending changes :
+          * staged_files     : #{staged_files}
+          * uncommited_files : #{uncommited_files}
+          * unpushed_commits : #{unpushed_commits}
+
+          Commit them or stash them before creating a new release.
+          Exiting...
+        MSG
       end
 
       def new_changelog_json(next_version)
