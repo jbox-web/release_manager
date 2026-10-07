@@ -48,6 +48,11 @@ module ReleaseManager
       # Thor::Error exits 1, so `release && push` stops on a refused release
       raise Thor::Error, invalid_branch_message unless valid_branch?
       raise Thor::Error, pending_changes_message if pending_changes?
+      # The changelog lists the commits since this tag: without it git log
+      # fails and the release would record no change at all.
+      unless current_version_tagged?
+        raise Thor::Error, "Tag #{current_version} not found, can't list the changes since then."
+      end
 
       render_release_infos(paint(current_branch, :white))
 
@@ -209,6 +214,10 @@ module ReleaseManager
 
       def ref_range
         "#{current_version}...master"
+      end
+
+      def current_version_tagged?
+        exec_git_cmd(%W[git tag --list #{current_version}]) == current_version
       end
 
       def release_commit_at_head?

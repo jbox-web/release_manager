@@ -86,6 +86,18 @@ RSpec.describe 'release-manager release' do
       expect(sh!(app, 'git', 'tag', '--list')).to eq('1.0.0')
     end
 
+    it 'exits 1 when the current version has no tag' do
+      sh!(app, 'git', 'tag', '-d', '1.0.0')
+
+      result = run_cli(app, 'release')
+
+      expect(result.status.exitstatus).to eq(1)
+      expect(result.stderr)
+        .to include("Tag 1.0.0 not found, can't list the changes since then.")
+      expect(sh!(app, 'git', 'tag', '--list')).to eq('')
+      expect(sh!(app, 'git', 'status', '--porcelain')).to eq('')
+    end
+
     it 'exits 1 when there is no origin remote' do
       sh!(app, 'git', 'remote', 'remove', 'origin')
 
