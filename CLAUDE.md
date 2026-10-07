@@ -29,8 +29,11 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
 ## Architecture
 
 - `exe/release-manager` → `ReleaseManager.start_cli` → `ReleaseManager::Cli` (Thor) → class methods
-  on `ReleaseManager::Release`, which builds an instance per command. Files are autoloaded by
-  Zeitwerk (`Zeitwerk::Loader.for_gem`), so new constants must follow the file-naming convention.
+  on `ReleaseManager::Release`, which builds an instance per command and orchestrates three
+  collaborators: `Git` (every git command), `Changelog` (builds and writes `CHANGELOG.md`,
+  `changelog.json` and `VERSION`) and `Report` (all printed output and refusal messages). Files are
+  autoloaded by Zeitwerk (`Zeitwerk::Loader.for_gem`), so new constants must follow the file-naming
+  convention.
 - `Release#initialize` computes everything up front: current version via `Bump::Bump.current`
   (read from the host app's `VERSION` file), next version via `Bump::Bump.next_version`. Thor rejects
   a `--bump` value outside `Release::BUMP_LEVELS` before any of this runs.
@@ -51,9 +54,9 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   untagged by a failed signature, and the working tree is clean; it then deletes the tag if any and
   soft-resets `HEAD^`.
 - `push` pushes `master` and the current version tag to `origin` in one `git push --atomic`.
-- Refusals raise `Thor::Error` (`exit_on_failure?` is true, so the CLI exits 1). Queries go through
-  `exec_git_cmd` (`Open3.capture2` in argv form, output relabelled as UTF-8); mutations go through
-  `git!`, which raises `Thor::Error` when the command fails.
+- Refusals raise `Thor::Error` (`exit_on_failure?` is true, so the CLI exits 1). Git queries go through
+  `Git#capture` (`Open3.capture2` in argv form, output relabelled as UTF-8); mutations go through
+  `Git#run!`, which raises `Thor::Error` when the command fails.
 
 ## Conventions
 
