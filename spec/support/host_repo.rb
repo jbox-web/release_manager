@@ -89,7 +89,7 @@ module HostRepo
 
   def seed_host_files(app, changelog, changelog_json, config)
     write_file(app, 'VERSION', "1.0.0\n")
-    write_file(app, 'CHANGELOG.md', changelog)
+    write_file(app, 'CHANGELOG.md', changelog) if changelog
     write_file(app, 'changelog.json', changelog_json) if changelog_json
     write_file(app, '.release_manager.yml', config) if config
     sh!(app, 'git', 'add', '--all')

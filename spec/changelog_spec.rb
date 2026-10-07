@@ -44,6 +44,16 @@ RSpec.describe 'release-manager release, CHANGELOG.md handling' do
     expect(release_with("# Change Log\n")).to eq("# Change Log\n\n#{new_entry}")
   end
 
+  it 'fails before writing anything when CHANGELOG.md is missing' do
+    app = create_host_repo(changelog: nil)
+
+    result = run_cli(app, 'release', '--bump', 'minor')
+
+    expect(result.status.exitstatus).to eq(1)
+    expect(result.stderr).to include('CHANGELOG.md is missing')
+    expect(sh!(app, 'git', 'status', '--porcelain')).to eq('')
+  end
+
   context 'when the locale is C, as under cron' do
     let(:previous) { "## [1.0.0](https://example.test/app/tree/1.0.0) (2026-01-01)\n- bogue corrigé\n" }
     let(:app) do

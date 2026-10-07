@@ -64,6 +64,24 @@ RSpec.describe 'release-manager release' do
     end
   end
 
+  context 'when changelog.json cannot be used' do
+    {
+      'is not valid JSON' => 'not json',
+      'is missing' => nil
+    }.each do |problem, content|
+      it "fails before writing anything when it #{problem}" do
+        app = create_host_repo(changelog_json: content)
+
+        result = run_cli(app, 'release', '--bump', 'minor')
+
+        expect(result.status.exitstatus).to eq(1)
+        expect(result.stderr).to include("changelog.json #{problem}")
+        expect(sh!(app, 'git', 'status', '--porcelain')).to eq('')
+        expect(read_file(app, 'VERSION')).to eq("1.0.0\n")
+      end
+    end
+  end
+
   context 'when git refuses the release commit' do
     before do
       hook = File.join(app, '.git', 'hooks', 'pre-commit')

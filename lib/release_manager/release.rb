@@ -58,13 +58,13 @@ module ReleaseManager
 
       render_release_infos(paint(current_branch, :white))
 
-      # Write the new CHANGELOG.md, with our new version on top
-      write_changelog(next_version_text(current_date, current_version, next_version))
+      # Build every file before writing the first one: a missing or invalid
+      # input must stop the release with the working tree still clean.
+      changelog      = new_changelog(next_version_text(current_date, current_version, next_version))
+      changelog_json = new_changelog_json(next_version)
 
-      # Regenerate changelog.yml file
-      update_changelog_json(next_version)
-
-      # Write the new VERSION
+      File.write(CHANGELOG_FILE, changelog)
+      write_changelog_json(changelog_json)
       write_version(next_version)
 
       # Commit to repo
@@ -123,15 +123,11 @@ module ReleaseManager
       # whatever its trailing newlines. A CHANGELOG.md with no entry yet gets
       # the new one appended after its content.
       def new_changelog(entry)
-        content = File.read(CHANGELOG_FILE, encoding: 'UTF-8')
+        content = read_input(CHANGELOG_FILE)
         first_entry = content.index(CHANGELOG_ENTRY)
         return "#{content.rstrip}\n\n#{entry}\n\n" unless first_entry
 
         "#{content[0...first_entry]}#{entry}\n\n#{content[first_entry..]}"
-      end
-
-      def write_changelog(entry)
-        File.write(CHANGELOG_FILE, new_changelog(entry))
       end
 
       def write_changelog_json(data)
@@ -241,11 +237,22 @@ module ReleaseManager
         puts 'Exiting...'
       end
 
-      def update_changelog_json(next_version)
-        current_changelog = JSON.parse(File.read(CHANGELOG_FILE_JSON, encoding: 'UTF-8'))
+      def new_changelog_json(next_version)
+        current_changelog = parse_changelog_json
         release_entry     = { 'author' => author, 'release_date' => release_date, 'changes' => git_changelog }
-        next_changelog    = current_changelog.merge({ next_version => release_entry })
-        write_changelog_json(next_changelog)
+        current_changelog.merge({ next_version => release_entry })
+      end
+
+      def parse_changelog_json
+        JSON.parse(read_input(CHANGELOG_FILE_JSON))
+      rescue JSON::ParserError
+        raise Thor::Error, "#{CHANGELOG_FILE_JSON} is not valid JSON, fix it before releasing."
+      end
+
+      def read_input(file)
+        File.read(file, encoding: 'UTF-8')
+      rescue Errno::ENOENT
+        raise Thor::Error, "#{file} is missing, create it before releasing."
       end
 
       def pending_changes?
