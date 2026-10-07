@@ -2,6 +2,7 @@
 
 require 'date'
 require 'json'
+require 'open3'
 require 'yaml'
 require 'bump'
 require 'paint'

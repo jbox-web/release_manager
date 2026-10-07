@@ -52,8 +52,8 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   soft-resets `HEAD^`.
 - `push` pushes `master` and the current version tag to `origin` in one `git push --atomic`.
 - Refusals raise `Thor::Error` (`exit_on_failure?` is true, so the CLI exits 1). Queries go through
-  `exec_git_cmd` (`%x()`, output relabelled as UTF-8); mutations go through `git!`, which raises
-  `Thor::Error` when the command fails.
+  `exec_git_cmd` (`Open3.capture2` in argv form, output relabelled as UTF-8); mutations go through
+  `git!`, which raises `Thor::Error` when the command fails.
 
 ## Conventions
 

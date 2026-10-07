@@ -253,8 +253,9 @@ module ReleaseManager
       end
 
       def exec_git_cmd(args)
-        cmd = args.join(' ')
-        out = %x(#{cmd})
+        # argv form, no shell: each argument reaches git as is. stderr is not
+        # captured, so git's own error messages still reach the terminal.
+        out, _status = Open3.capture2(*args)
         # Git prints UTF-8, but the capture is labelled with the locale's
         # encoding, which is US-ASCII under LANG=C and breaks commit subjects.
         out.force_encoding(Encoding::UTF_8).strip
