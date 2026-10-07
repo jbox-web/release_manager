@@ -14,7 +14,14 @@ git_source(:github){ |repo_name| "https://github.com/#{repo_name}.git" }
 gem 'release_manager', github: 'jbox-web/release_manager', branch: 'master'
 ```
 
-then run `bundle install`. Ruby 3.3 or later is required.
+then run `bundle install`, and generate the binstub:
+
+```sh
+bundle binstubs release_manager
+```
+
+It creates `bin/release-manager`, which pins the gem version from your `Gemfile.lock`.
+Ruby 3.3 or later is required.
 
 ## Usage
 
@@ -22,10 +29,10 @@ Run the commands from the root of your application, on the `master` branch:
 
 | Command | What it does |
 |---|---|
-| `bundle exec release-manager info [--bump LEVEL]` | Shows the current and next version, and whether the repository is ready for a release |
-| `bundle exec release-manager release [--bump LEVEL]` | Bumps `VERSION`, updates `CHANGELOG.md` and `changelog.json`, commits them and creates a signed tag |
-| `bundle exec release-manager push` | Pushes `master` and the release tag to `origin`, atomically |
-| `bundle exec release-manager rollback` | Removes the release commit and its tag locally; meant for a release not pushed yet, since nothing is removed from `origin` |
+| `bin/release-manager info [--bump LEVEL]` | Shows the current and next version, and whether the repository is ready for a release |
+| `bin/release-manager release [--bump LEVEL]` | Bumps `VERSION`, updates `CHANGELOG.md` and `changelog.json`, commits them and creates a signed tag |
+| `bin/release-manager push` | Pushes `master` and the release tag to `origin`, atomically |
+| `bin/release-manager rollback` | Removes the release commit and its tag locally; meant for a release not pushed yet, since nothing is removed from `origin` |
 
 `LEVEL` is `major`, `minor` or `patch` (default). Any other value is rejected.
 
