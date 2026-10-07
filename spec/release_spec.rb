@@ -85,6 +85,29 @@ RSpec.describe 'release-manager release' do
       expect(result.stderr).to include('uncommited_files : ["feature.txt"]')
       expect(sh!(app, 'git', 'tag', '--list')).to eq('1.0.0')
     end
+
+    it 'exits 1 when there is no origin remote' do
+      sh!(app, 'git', 'remote', 'remove', 'origin')
+
+      result = run_cli(app, 'release')
+
+      expect(result.status.exitstatus).to eq(1)
+      expect(result.stderr).to include('`git fetch --quiet origin master` failed')
+      expect(sh!(app, 'git', 'tag', '--list')).to eq('1.0.0')
+    end
+
+    it 'exits 1 when origin has commits not pulled yet' do
+      other = File.join(File.dirname(app), 'other')
+      sh!(File.dirname(app), 'git', 'clone', '-q', 'origin.git', other)
+      commit_feature(other, name: 'remote.txt', subject: 'Remote work')
+      sh!(other, 'git', 'push', '-q', 'origin', 'master')
+
+      result = run_cli(app, 'release')
+
+      expect(result.status.exitstatus).to eq(1)
+      expect(result.stderr).to match(/unpulled_commits : \["\h+ Remote work"\]/)
+      expect(sh!(app, 'git', 'tag', '--list')).to eq('1.0.0')
+    end
   end
 
   context 'when changelog.json cannot be used' do

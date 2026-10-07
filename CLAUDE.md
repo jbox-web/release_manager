@@ -41,14 +41,16 @@ builds its file list from `git ls-files`: a tracked file missing from disk makes
   - `changelog.json` — must exist and be valid JSON; a new key per version is merged in with
     `author`, `release_date` and `changes` (commit subjects from `<current_version>...master`).
   - `.release_manager.yml` — optional, provides `author` and `repository_url`.
-- `release` refuses to run unless on `master` (`DEFAULT_BRANCH`, hardcoded) with no staged,
-  unstaged or unpushed changes, then writes the three files, commits them and creates a signed,
-  annotated tag named after the bare version (no `v` prefix).
-- `rollback` deletes the tag of the **current** `VERSION` and soft-resets `HEAD^` — it assumes the
-  last commit is the release commit.
+- `release` fetches `origin/master` and refuses to run unless on `master` (`DEFAULT_BRANCH`,
+  hardcoded) with no staged, unstaged, unpushed or unpulled changes. It builds the new files
+  before writing any of them, commits them and creates a signed, annotated tag named after the
+  bare version (no `v` prefix).
+- `rollback` only runs when HEAD is the release commit the current version tag points to and the
+  working tree is clean; it then deletes that tag and soft-resets `HEAD^`.
 - `push` pushes `master` and all tags to `origin`.
-- Git is driven through `%x()` (output captured, exit status ignored); the tag creation uses
-  `system(..., exception: true)` so a signing failure aborts instead of printing "Done!".
+- Refusals raise `Thor::Error` (`exit_on_failure?` is true, so the CLI exits 1). Queries go through
+  `exec_git_cmd` (`%x()`, output relabelled as UTF-8); mutations go through `git!`, which raises
+  `Thor::Error` when the command fails.
 
 ## Conventions
 

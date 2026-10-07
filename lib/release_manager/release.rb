@@ -21,6 +21,7 @@ module ReleaseManager
       @bump_version       = 'patch' unless %w[major minor patch].include?(bump_version)
       @next_version       = Bump::Bump.next_version(bump_version, current_version)
       @configuration_file = File.join(Dir.pwd, CONFIGURATION_FILE)
+      @remote_fetched     = false
     end
 
     class << self
@@ -94,6 +95,8 @@ module ReleaseManager
       puts ok_if_empty(staged_files)
       puts 'unpushed_commits :'
       puts ok_if_empty(unpushed_commits)
+      puts 'unpulled_commits :'
+      puts ok_if_empty(unpulled_commits)
     end
 
     private
@@ -174,8 +177,26 @@ module ReleaseManager
       end
 
       def unpushed_commits
-        @unpushed_commits ||=
-          exec_git_cmd(%W[git log --format=oneline origin/#{DEFAULT_BRANCH}..#{DEFAULT_BRANCH}]).split("\n")
+        @unpushed_commits ||= remote_log("origin/#{DEFAULT_BRANCH}..#{DEFAULT_BRANCH}")
+      end
+
+      def unpulled_commits
+        @unpulled_commits ||= remote_log("#{DEFAULT_BRANCH}..origin/#{DEFAULT_BRANCH}")
+      end
+
+      # Both directions are compared against a freshly fetched origin: without
+      # the fetch a stale origin/master hides commits pushed by others, and a
+      # missing remote used to read as "nothing to push".
+      def remote_log(range)
+        fetch_remote
+        exec_git_cmd(%W[git log --format=oneline #{range}]).split("\n")
+      end
+
+      def fetch_remote
+        return if @remote_fetched
+
+        git!('fetch', '--quiet', 'origin', DEFAULT_BRANCH)
+        @remote_fetched = true
       end
 
       def git_changelog
@@ -227,6 +248,7 @@ module ReleaseManager
           * staged_files     : #{staged_files}
           * uncommited_files : #{uncommited_files}
           * unpushed_commits : #{unpushed_commits}
+          * unpulled_commits : #{unpulled_commits}
 
           Commit them or stash them before creating a new release.
           Exiting...
@@ -252,7 +274,7 @@ module ReleaseManager
       end
 
       def pending_changes?
-        staged_files.any? || uncommited_files.any? || unpushed_commits.any?
+        staged_files.any? || uncommited_files.any? || unpushed_commits.any? || unpulled_commits.any?
       end
 
       def ok_for_release?
