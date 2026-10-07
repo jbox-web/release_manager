@@ -1,0 +1,23 @@
+# Per-task `timeout` keys are only enforced reliably from mise 2026.10.2 on:
+# an older mise must refuse to run instead of leaving those tasks unbounded.
+min_version = "2026.10.2"
+
+[tools]
+ruby = "4.0.7"
+
+# Dev tasks (mirrors ovh-client). Interactive use can call the bin/ binstubs directly;
+# these give CI and scripts a stable entry point.
+[tasks."dev:deps"]
+description = "Install Ruby dependencies"
+run = "bundle install"
+
+# RuboCop can spin at 100% CPU on some inputs: the bound makes the task fail with
+# "timed out after 180s" instead of running unnoticed for hours.
+[tasks."dev:lint"]
+description = "Run RuboCop"
+timeout = "180s"
+run = "bin/rubocop"
+
+[tasks."release:build"]
+description = "Build the gem into pkg/"
+run = "bin/rake build"

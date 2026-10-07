@@ -1,0 +1,56 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+A small Thor CLI gem (`release-manager`) that cuts releases of a **host application**: it is added to
+the host app's `Gemfile` (from GitHub, by tag) and run from that app's root. All file and git
+operations target `Dir.pwd`, never this gem's own repository.
+
+## Commands
+
+Ruby is pinned in `mise.toml`, which also wraps the commands as tasks:
+
+- Install dependencies: `mise run dev:deps` (`bundle install`)
+- Lint: `mise run dev:lint` (`bin/rubocop`, bounded to 180s; config in `.rubocop.yml`, `bin/*` excluded,
+  target Ruby 3.0, max line length 110)
+- Build the gem: `mise run release:build` (`bin/rake build`; only the `bundler/gem_tasks` tasks exist)
+- Run the CLI locally: `bundle exec exe/release-manager <release|rollback|push|info> [--bump major|minor|patch]`
+
+There is no test suite. `.gitignore` mentions `spec/dummy` and `coverage/`, but no spec directory exists.
+
+`Gemfile.lock` is git-ignored, so gem versions are whatever the local lockfile resolved. The gemspec
+builds its file list from `git ls-files`: a tracked file missing from disk makes `gem build` fail.
+
+## Architecture
+
+- `exe/release-manager` → `ReleaseManager.start_cli` → `ReleaseManager::Cli` (Thor) → class methods
+  on `ReleaseManager::Release`, which builds an instance per command. Files are autoloaded by
+  Zeitwerk (`Zeitwerk::Loader.for_gem`), so new constants must follow the file-naming convention.
+- `Release#initialize` computes everything up front: current version via `Bump::Bump.current`
+  (read from the host app's `VERSION` file), next version via `Bump::Bump.next_version`. An invalid
+  `--bump` value silently falls back to `patch`.
+- Host app contract — files expected at the host app root:
+  - `VERSION` — rewritten with the next version.
+  - `CHANGELOG.md` — must already contain a `## ... [Full Changelog] ...` block; `CHANGELOG_REGEX`
+    splits on it and the new version entry is prepended.
+  - `changelog.json` — must exist and be valid JSON; a new key per version is merged in with
+    `author`, `release_date` and `changes` (commit subjects from `<current_version>...master`).
+  - `.release_manager.yml` — optional, provides `author` and `repository_url`.
+- `release` refuses to run unless on `master` (`DEFAULT_BRANCH`, hardcoded) with no staged,
+  unstaged or unpushed changes, then writes the three files, commits them and creates a signed,
+  annotated tag named after the bare version (no `v` prefix).
+- `rollback` deletes the tag of the **current** `VERSION` and soft-resets `HEAD^` — it assumes the
+  last commit is the release commit.
+- `push` pushes `master` and all tags to `origin`.
+- Git is driven through `%x()` (output captured, exit status ignored); the tag creation uses
+  `system(..., exception: true)` so a signing failure aborts instead of printing "Done!".
+
+## Conventions
+
+- `Style/CommandLiteral` enforces `%x()` over backticks.
+- Private methods are indented one level under `private` (`Layout/IndentationConsistency:
+  indented_internal_methods`).
+- The gem's own version lives in `lib/release_manager/version.rb` (`VERSION::MAJOR/MINOR/TINY/PRE`),
+  unrelated to the host app's `VERSION` file.
