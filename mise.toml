@@ -11,6 +11,13 @@ ruby = "4.0.7"
 description = "Install Ruby dependencies"
 run = "bundle install"
 
+# The specs drive the real executable against throwaway git repositories; the
+# bound turns a hung git or ssh-keygen into a failure instead of a stuck run.
+[tasks."dev:spec"]
+description = "Run the spec suite"
+timeout = "600s"
+run = "bin/rspec"
+
 # RuboCop can spin at 100% CPU on some inputs: the bound makes the task fail with
 # "timed out after 180s" instead of running unnoticed for hours.
 [tasks."dev:lint"]

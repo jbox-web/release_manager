@@ -15,10 +15,13 @@ Ruby is pinned in `mise.toml`, which also wraps the commands as tasks:
 - Install dependencies: `mise run dev:deps` (`bundle install`)
 - Lint: `mise run dev:lint` (`bin/rubocop`, bounded to 180s; config in `.rubocop.yml`, `bin/*` excluded,
   target Ruby 3.0, max line length 110)
+- Specs: `mise run dev:spec` (`bin/rspec`, bounded to 600s); one example: `bin/rspec spec/release_spec.rb:16`
 - Build the gem: `mise run release:build` (`bin/rake build`; only the `bundler/gem_tasks` tasks exist)
 - Run the CLI locally: `bundle exec exe/release-manager <release|rollback|push|info> [--bump major|minor|patch]`
 
-There is no test suite. `.gitignore` mentions `spec/dummy` and `coverage/`, but no spec directory exists.
+The specs are end-to-end: `spec/support/host_repo.rb` builds a throwaway host app (bare `origin` + `master`
+clone) and runs the real executable in a subprocess. Git is isolated from the developer's config through
+`GIT_CONFIG_GLOBAL` (generated file with a per-run SSH signing key) and `GIT_CONFIG_NOSYSTEM`.
 
 `Gemfile.lock` is git-ignored, so gem versions are whatever the local lockfile resolved. The gemspec
 builds its file list from `git ls-files`: a tracked file missing from disk makes `gem build` fail.
