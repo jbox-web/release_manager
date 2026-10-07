@@ -78,12 +78,18 @@ module ReleaseManager
     end
 
     def rollback
-      %x(git tag -d #{current_version})
-      %x(git reset --soft HEAD^)
-      %x(git reset)
-      %x(git checkout #{CHANGELOG_FILE})
-      %x(git checkout #{CHANGELOG_FILE_JSON})
-      %x(git checkout #{VERSION_FILE})
+      # Both guards protect work that a rollback would otherwise destroy: the
+      # last regular commit (and the tag of the previous release) when no
+      # release is pending, and local edits to the files restored below.
+      raise Thor::Error, "HEAD is not the release commit of #{current_version}, nothing to roll back." \
+        unless release_commit_at_head?
+      raise Thor::Error, 'There are uncommitted changes, commit or stash them before rolling back.' \
+        unless exec_git_cmd(%w[git status --porcelain --untracked-files=no]).empty?
+
+      git!('tag', '-d', current_version)
+      git!('reset', '--soft', 'HEAD^')
+      git!('reset', '--quiet')
+      git!('checkout', '--', CHANGELOG_FILE, CHANGELOG_FILE_JSON, VERSION_FILE)
       puts 'Done!'
     end
 
@@ -200,6 +206,17 @@ module ReleaseManager
 
       def ref_range
         "#{current_version}...master"
+      end
+
+      def release_commit_at_head?
+        head         = exec_git_cmd(%w[git rev-parse HEAD])
+        tag_commit   = exec_git_cmd(%W[git rev-list -n 1 #{current_version}])
+        head_subject = exec_git_cmd(%w[git log -1 --format=%s])
+        tag_commit == head && head_subject == "Release version #{current_version}"
+      end
+
+      def git!(*args)
+        system('git', *args, exception: true)
       end
 
       def exec_git_cmd(args)
