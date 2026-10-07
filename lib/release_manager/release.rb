@@ -10,14 +10,15 @@ module ReleaseManager
     CHANGELOG_FILE_JSON = 'changelog.json'
     CHANGELOG_REGEX     = /(##.*\[Full Changelog\].*\n\n)/m
 
-    attr_reader :current_date, :current_version, :release_date, :next_version, :bump_version, :configuration_file
+    attr_reader :current_date, :current_version, :release_date, :next_version, :bump_version,
+                :configuration_file
 
     def initialize(opts = {})
       @current_date       = ::Date.today.to_s
       @current_version    = Bump::Bump.current
-      @release_date       = Time.now.utc.strftime("%Y%m%d%H%M%S")
+      @release_date       = Time.now.utc.strftime('%Y%m%d%H%M%S')
       @bump_version       = opts[:bump] || 'patch'
-      @bump_version       = 'patch' if !%w[major minor patch].include?(bump_version)
+      @bump_version       = 'patch' unless %w[major minor patch].include?(bump_version)
       @next_version       = Bump::Bump.next_version(bump_version, current_version)
       @configuration_file = File.join(Dir.pwd, CONFIGURATION_FILE)
     end
@@ -55,21 +56,13 @@ module ReleaseManager
         return
       end
 
-      puts "repository_url   : #{repository_url}"
-      puts "author           : #{author}"
-      puts "current_branch   : #{paint(current_branch, :white)}"
-      puts "current_date     : #{paint(current_date, :white)}"
-      puts "release_date     : #{paint(release_date, :white)}"
-      puts "bump_version     : #{paint(bump_version, :white)}"
-      puts "current_version  : #{paint(current_version, :white)}"
-      puts "next_version     : #{paint(next_version, :white)}"
-      puts ''
+      render_release_infos(paint(current_branch, :white))
 
       # Get all versions from CHANGELOG.md
-      versions = get_versions
+      versions = changelog_versions
 
       # Add our new version
-      versions = versions.unshift(next_version_text(current_date, current_version, next_version))
+      versions.unshift(next_version_text(current_date, current_version, next_version))
 
       # Write the new CHANGELOG.md
       write_changelog(versions)
@@ -102,15 +95,7 @@ module ReleaseManager
 
     def info
       puts "OK for release   : #{render_ok_for_release?}"
-      puts "repository_url   : #{repository_url}"
-      puts "author           : #{author}"
-      puts "current_branch   : #{render_branch(current_branch)}"
-      puts "current_date     : #{paint(current_date, :white)}"
-      puts "release_date     : #{paint(release_date, :white)}"
-      puts "bump_version     : #{paint(bump_version, :white)}"
-      puts "current_version  : #{paint(current_version, :white)}"
-      puts "next_version     : #{paint(next_version, :white)}"
-      puts ''
+      render_release_infos(render_branch(current_branch))
       puts 'uncommited_files :'
       puts ok_if_empty(uncommited_files)
       puts 'staged_files :'
@@ -121,10 +106,21 @@ module ReleaseManager
 
     private
 
-      def get_versions
+      def render_release_infos(rendered_branch)
+        puts "repository_url   : #{repository_url}"
+        puts "author           : #{author}"
+        puts "current_branch   : #{rendered_branch}"
+        puts "current_date     : #{paint(current_date, :white)}"
+        puts "release_date     : #{paint(release_date, :white)}"
+        puts "bump_version     : #{paint(bump_version, :white)}"
+        puts "current_version  : #{paint(current_version, :white)}"
+        puts "next_version     : #{paint(next_version, :white)}"
+        puts ''
+      end
+
+      def changelog_versions
         versions = File.read(CHANGELOG_FILE).split(CHANGELOG_REGEX)[1].split("\n\n")
-        versions = versions.reject { |v| v == "\n" }
-        versions
+        versions.reject { |v| v == "\n" }
       end
 
       def write_changelog(versions)
@@ -146,16 +142,14 @@ module ReleaseManager
       end
 
       def write_version(version)
-        File.open(VERSION_FILE, 'w') do |f|
-          f.write "#{version}\n"
-        end
+        File.write(VERSION_FILE, "#{version}\n")
       end
 
       def next_version_text(current_date, current_version, next_version)
-        ''"
+        "
           ## [#{next_version}](#{repository_url}/tree/#{next_version}) (#{current_date})
           [Full Changelog](#{repository_url}/compare/#{current_version}...#{next_version})
-        "''.strip.gsub(' ' * 10, '')
+        ".strip.gsub(' ' * 10, '')
       end
 
       def git_commit(version)
@@ -192,11 +186,16 @@ module ReleaseManager
       end
 
       def unpushed_commits
-        @unpushed_commits ||= exec_git_cmd(%W[git log --format=oneline origin/#{DEFAULT_BRANCH}..#{DEFAULT_BRANCH}]).split("\n")
+        @unpushed_commits ||=
+          exec_git_cmd(%W[git log --format=oneline origin/#{DEFAULT_BRANCH}..#{DEFAULT_BRANCH}]).split("\n")
       end
 
       def git_changelog
-        @git_changelog ||= exec_git_cmd(%W[git log --format=%s #{ref_range}]).split("\n").reverse.push("Release version #{next_version}")
+        @git_changelog ||=
+          exec_git_cmd(%W[git log --format=%s #{ref_range}])
+          .split("\n")
+          .reverse
+          .push("Release version #{next_version}")
       end
 
       def ref_range
@@ -227,7 +226,8 @@ module ReleaseManager
 
       def update_changelog_json(next_version)
         current_changelog = JSON.parse(File.read(CHANGELOG_FILE_JSON))
-        next_changelog    = current_changelog.merge({ next_version => { 'author' => author, 'release_date' => release_date, 'changes' => git_changelog } })
+        release_entry     = { 'author' => author, 'release_date' => release_date, 'changes' => git_changelog }
+        next_changelog    = current_changelog.merge({ next_version => release_entry })
         write_changelog_json(next_changelog)
       end
 
@@ -266,7 +266,7 @@ module ReleaseManager
       def default_config
         @default_config ||=
           if File.exist?(configuration_file)
-            YAML.load(File.read(configuration_file))
+            YAML.safe_load_file(configuration_file)
           else
             { 'repository_url' => '' }
           end

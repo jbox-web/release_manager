@@ -14,16 +14,16 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 3.0.0'
 
-  s.files = `git ls-files`.split("\n")
+  s.files = %x(git ls-files).split("\n")
 
   s.bindir      = 'exe'
   s.executables = ['release-manager']
 
-  s.add_runtime_dependency 'bump', '>= 0.8.0'
-  s.add_runtime_dependency 'paint'
-  s.add_runtime_dependency 'rake'
-  s.add_runtime_dependency 'thor'
-  s.add_runtime_dependency 'zeitwerk'
+  s.add_dependency 'bump', '>= 0.8.0'
+  s.add_dependency 'paint'
+  s.add_dependency 'rake'
+  s.add_dependency 'thor'
+  s.add_dependency 'zeitwerk'
 
-  s.add_development_dependency 'rubocop'
+  s.metadata['rubygems_mfa_required'] = 'true'
 end
